@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: elevenlabs-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Sensible defaults; can be overridden in .env
+      HOST: 0.0.0.0
+      PORT: 8000
+      DEBUG: "true"
+      DATABASE_URL: sqlite:////app/data/sales_training.db
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - app_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  app_data:
+    driver: local
+
+
