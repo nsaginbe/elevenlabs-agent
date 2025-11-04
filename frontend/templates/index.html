@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Training Platform</title>
+    <link href="/static/styles.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-headset"></i> Платформа Тренировки Продаж</h1>
+            <p>Практикуйтесь в продажах с ИИ-клиентом в режиме реального времени</p>
+        </header>
+
+        <main class="main-content">
+            <div class="training-panel" id="trainingPanel">
+                <div class="manager-info">
+                    <label for="managerName">Ваше имя:</label>
+                    <input type="text" id="managerName" placeholder="Введите ваше имя" required>
+                </div>
+
+                <div class="training-controls">
+                    <button id="startTraining" class="btn btn-start">
+                        <i class="fas fa-play"></i> Начать Тренировку
+                    </button>
+                    <button id="stopTraining" class="btn btn-stop" style="display: none;">
+                        <i class="fas fa-stop"></i> Завершить Тренировку
+                    </button>
+                </div>
+
+                <div class="session-info" id="sessionInfo" style="display: none;">
+                    <div class="info-item">
+                        <span class="label">Сессия:</span>
+                        <span id="sessionId">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Начало:</span>
+                        <span id="sessionStart">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Статус:</span>
+                        <span id="sessionStatus" class="status active">Активна</span>
+                    </div>
+                </div>
+
+                <div class="convai-container" id="convaiContainer" style="display: none;">
+                    <h3>💬 Говорите с ИИ-клиентом</h3>
+                    <p class="convai-hint">
+                        <i class="fas fa-info-circle"></i>
+                        Скажите <strong>"Завершить"</strong> чтобы закончить диалог
+                    </p>
+                    <div class="convai-widget">
+                        <elevenlabs-convai agent-id="{{ elevenlabs_agent_id }}"></elevenlabs-convai>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="tips-panel">
+                    <h3><i class="fas fa-lightbulb"></i> Советы для тренировки</h3>
+                    <ul class="tips-list">
+                        <li>🎯 Сначала выясните потребности клиента</li>
+                        <li>👂 Внимательно слушайте возражения</li>
+                        <li>💡 Предлагайте решения, а не просто продукты</li>
+                        <li>🤝 Стройте доверительные отношения</li>
+                        <li>✅ Четко резюмируйте договоренности</li>
+                        <li>🚀 Завершайте конкретным призывом к действию</li>
+                    </ul>
+                </div>
+
+                <div class="history-panel">
+                    <h3><i class="fas fa-history"></i> История тренировок</h3>
+                    <div id="sessionHistory" class="session-history">
+                        <p class="no-sessions">Пока нет завершенных сессий</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="analysisModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="analysisContent">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Анализируем вашу тренировку...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализ Тренировки - Sales Training Platform</title>
+    <link href="/static/styles.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-chart-line"></i> Анализ Тренировки</h1>
+            <a href="/" class="back-link">
+                <i class="fas fa-arrow-left"></i> Вернуться к тренировкам
+            </a>
+        </header>
+
+        <main class="analysis-main">
+            <div class="analysis-header">
+                <div class="session-meta">
+                    <h2>{{ session.manager_name }}</h2>
+                    <div class="meta-info">
+                        <span class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            {{ session.session_start.strftime('%d.%m.%Y %H:%M') }}
+                        </span>
+                        {% if session.session_end %}
+                        <span class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            Длительность: {{ ((session.session_end - session.session_start).total_seconds() / 60) | round(1) }} мин
+                        </span>
+                        {% endif %}
+                        {% if session.score %}
+                        <span class="meta-item score">
+                            <i class="fas fa-star"></i>
+                            Оценка: {{ session.score }}/10
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-content">
+                {% if session.ai_analysis %}
+                <div class="analysis-result">
+                    {{ session.ai_analysis | safe }}
+                </div>
+                {% else %}
+                <div class="no-analysis">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Анализ недоступен</h3>
+                    <p>К сожалению, не удалось проанализировать эту тренировочную сессию.</p>
+                </div>
+                {% endif %}
+
+                {% if session.conversation_log %}
+                <div class="conversation-log">
+                    <h3><i class="fas fa-comments"></i> Лог разговора</h3>
+                    <div class="log-content">
+                        <pre>{{ session.conversation_log }}</pre>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="analysis-actions">
+                <button onclick="window.print()" class="btn btn-secondary">
+                    <i class="fas fa-print"></i> Распечатать анализ
+                </button>
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Новая тренировка
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .analysis-main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .analysis-header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .session-meta h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            color: #7f8c8d;
+            font-size: 0.95em;
+        }
+
+        .meta-item.score {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .analysis-result {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            line-height: 1.8;
+        }
+
+        .analysis-result h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+        }
+
+        .analysis-result h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .no-analysis {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            color: #7f8c8d;
+        }
+
+        .conversation-log {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .log-content {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-content pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .analysis-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .back-link {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media print {
+            .analysis-actions,
+            .header {
+                display: none;
+            }
+        }
+    </style>
+</body>
+</html>
