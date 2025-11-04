@@ -2,26 +2,21 @@ import openai
 import os
 from models import ConversationAnalysis
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class ConversationAnalyzer:
     def __init__(self):
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.enabled = True
-    
+
     async def analyze_conversation(self, conversation_log: str) -> ConversationAnalysis:
         """
         Анализирует разговор продажника с ИИ-клиентом
         """
-        
-        if not self.enabled:
-            return ConversationAnalysis(
-                score=5.0,
-                strengths=["Анализ недоступен - требуется настройка OpenAI API"],
-                areas_for_improvement=["Настройте OPENAI_API_KEY для детального анализа"],
-                specific_feedback="Для получения детального анализа настройте OpenAI API ключ в файле .env",
-                key_moments=["Анализ недоступен"]
-            )
-        
+
         prompt = f"""
         Проанализируй разговор продажника с клиентом. Оцени по шкале от 1 до 10:
         
@@ -45,37 +40,34 @@ class ConversationAnalyzer:
         - Закрытие сделки
         - Общее впечатление
         """
-        
+
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "Ты эксперт по продажам, анализирующий разговоры продажников. Отвечай только в формате JSON."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "Ты эксперт по продажам, анализирующий разговоры продажников. Отвечай только в формате JSON.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
-                temperature=0.3
+                temperature=0.3,
             )
-            
+
             analysis_text = response.choices[0].message.content
             analysis_data = json.loads(analysis_text)
-            
+
             return ConversationAnalysis(**analysis_data)
-            
+
         except Exception as e:
             print(f"Ошибка анализа: {e}")
-            return ConversationAnalysis(
-                score=5.0,
-                strengths=["Анализ недоступен"],
-                areas_for_improvement=["Не удалось проанализировать"],
-                specific_feedback="Ошибка при анализе разговора",
-                key_moments=[]
-            )
-    
+            return self._fallback_analysis(conversation_log)
+
     def format_analysis_for_display(self, analysis: ConversationAnalysis) -> str:
         """
         Форматирует анализ для отображения на фронтенде
         """
-        
+
         formatted = f"""
         # 📊 Анализ тренировочной сессии
         
@@ -93,5 +85,5 @@ class ConversationAnalyzer:
         ## 🔑 Ключевые моменты:
         {chr(10).join([f"• {moment}" for moment in analysis.key_moments])}
         """
-        
+
         return formatted

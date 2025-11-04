@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from dotenv import load_dotenv
 
@@ -14,12 +14,13 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+
 class TrainingSession(Base):
     __tablename__ = "training_sessions"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     manager_name = Column(String, index=True)
-    session_start = Column(DateTime, default=datetime.utcnow)
+    session_start = Column(DateTime, default=datetime.now(timezone.utc))
     session_end = Column(DateTime, nullable=True)
     conversation_log = Column(Text, nullable=True)
     ai_analysis = Column(Text, nullable=True)
@@ -27,8 +28,10 @@ class TrainingSession(Base):
     feedback = Column(Text, nullable=True)
     status = Column(String, default="active")  # active, completed, analyzed
 
+
 def create_tables():
     Base.metadata.create_all(bind=engine)
+
 
 def get_db():
     db = SessionLocal()

@@ -2,8 +2,10 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
+
 class TrainingSessionCreate(BaseModel):
     manager_name: str
+
 
 class TrainingSessionUpdate(BaseModel):
     session_end: Optional[datetime] = None
@@ -13,8 +15,10 @@ class TrainingSessionUpdate(BaseModel):
     feedback: Optional[str] = None
     status: Optional[str] = None
 
+
 class CompleteSessionRequest(BaseModel):
     conversation_log: str
+
 
 class TrainingSessionResponse(BaseModel):
     id: int
@@ -26,9 +30,10 @@ class TrainingSessionResponse(BaseModel):
     score: Optional[float]
     feedback: Optional[str]
     status: str
-    
+
     class Config:
         from_attributes = True
+
 
 class ConversationAnalysis(BaseModel):
     score: float
