@@ -12,15 +12,20 @@ client = ElevenLabs(api_key=api_key)
 def build_session_system_prompt(
     company_description: str = "",
     difficulty_level: str = "Средний",
+    manager_name: str = "",
 ) -> str:
     
     base_prompt = get_system_prompt()
 
     dynamic_params = (
-        "\n\n=== ДИНАМИЧЕСКИЕ ПАРАМЕТРЫ СЕССИИ ===\n"
+        "\n=== ДИНАМИЧЕСКИЕ ПАРАМЕТРЫ ===\n"
+        f"manager_name: \"{manager_name}\"\n"
         f"product_description: \"{company_description}\"\n"
         f"difficulty_level: \"{difficulty_level}\"\n"
     )
+
+    print("Built system prompt:")
+    print(f"{base_prompt}{dynamic_params}")
 
     return f"{base_prompt}{dynamic_params}"
 
