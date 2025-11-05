@@ -16,7 +16,7 @@ from models import (
     TrainerSettings,
 )
 from analyzer import ConversationAnalyzer
-from prompt_builder import build_final_prompt
+from prompt_builder import build_session_system_prompt
 from elevenlabs_client import ElevenLabsClient
 
 load_dotenv()
@@ -52,25 +52,18 @@ async def main_page(request: Request):
 
 @app.post("/api/sessions/", response_model=TrainingSessionResponse)
 async def create_session(session: TrainingSessionCreate, db: Session = Depends(get_db)):
-    # Формируем итоговый промпт
-    final_prompt = build_final_prompt(
-        company_description=getattr(session, "company_description", None) or "",
-        difficulty_level=session.difficulty_level or "",
+    session_system_prompt = build_session_system_prompt(
+        company_description=session.company_description,
+        difficulty_level=session.difficulty_level,
     )
-    
-    # Обновляем system prompt в ElevenLabs агенте
-    try:
-        await elevenlabs_client.update_agent_system_prompt(final_prompt)
-    except Exception as e:
-        print(f"Warning: Failed to update ElevenLabs agent prompt: {e}")
-        # Продолжаем создание сессии даже если обновление агента не удалось
-    
+
     db_session = TrainingSession(
         manager_name=session.manager_name,
-        company_description=getattr(session, "company_description", None),
+        company_description=session.company_description,
         difficulty_level=session.difficulty_level,
-        final_system_prompt=final_prompt,
+        session_system_prompt=session_system_prompt,
     )
+    
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
@@ -165,7 +158,7 @@ async def get_session_prompt(session_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Сессия не найдена")
     
     return {
-        "system_prompt": session.final_system_prompt or "",
+        "system_prompt": session.session_system_prompt or "",
         "session_id": session.id,
     }
 

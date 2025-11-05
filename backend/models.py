@@ -34,7 +34,7 @@ class TrainingSessionResponse(BaseModel):
     status: str
     company_description: Optional[str] = None
     difficulty_level: Optional[str] = None
-    final_system_prompt: Optional[str] = None
+    session_system_prompt: Optional[str] = None
 
     class Config:
         from_attributes = True
