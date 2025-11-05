@@ -13,8 +13,11 @@ from models import (
     TrainingSessionUpdate,
     TrainingSessionResponse,
     CompleteSessionRequest,
+    TrainerSettings,
 )
 from analyzer import ConversationAnalyzer
+from prompt_builder import build_final_prompt
+from elevenlabs_client import ElevenLabsClient
 
 load_dotenv()
 
@@ -32,18 +35,42 @@ except Exception as e:
     print(f"Warning: Failed to initialize analyzer: {e}")
     analyzer = None
 
+elevenlabs_client = ElevenLabsClient()
+
 
 @app.get("/", response_class=HTMLResponse)
 async def main_page(request: Request):
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "elevenlabs_agent_id": os.getenv("ELEVENLABS_AGENT_ID")},
+        {
+            "request": request,
+            "elevenlabs_agent_id": os.getenv("ELEVENLABS_AGENT_ID"),
+            "elevenlabs_api_key": os.getenv("ELEVENLABS_API_KEY"),
+        },
     )
 
 
 @app.post("/api/sessions/", response_model=TrainingSessionResponse)
 async def create_session(session: TrainingSessionCreate, db: Session = Depends(get_db)):
-    db_session = TrainingSession(manager_name=session.manager_name)
+    # Формируем итоговый промпт
+    final_prompt = build_final_prompt(
+        company_description=getattr(session, "company_description", None) or "",
+        difficulty_level=session.difficulty_level or "",
+    )
+    
+    # Обновляем system prompt в ElevenLabs агенте
+    try:
+        await elevenlabs_client.update_agent_system_prompt(final_prompt)
+    except Exception as e:
+        print(f"Warning: Failed to update ElevenLabs agent prompt: {e}")
+        # Продолжаем создание сессии даже если обновление агента не удалось
+    
+    db_session = TrainingSession(
+        manager_name=session.manager_name,
+        company_description=getattr(session, "company_description", None),
+        difficulty_level=session.difficulty_level,
+        final_system_prompt=final_prompt,
+    )
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
@@ -117,11 +144,37 @@ async def list_sessions(db: Session = Depends(get_db)):
     return sessions
 
 
+@app.get("/api/settings/", response_model=TrainerSettings)
+async def get_settings():
+    """
+    Возвращает текущие настройки тренажера (из последней сессии или дефолтные).
+    """
+    return TrainerSettings(
+        company_description="",
+        difficulty_level="Средний",
+    )
+
+
+@app.get("/api/sessions/{session_id}/prompt")
+async def get_session_prompt(session_id: int, db: Session = Depends(get_db)):
+    """
+    Возвращает итоговый system prompt для сессии.
+    """
+    session = db.query(TrainingSession).filter(TrainingSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Сессия не найдена")
+    
+    return {
+        "system_prompt": session.final_system_prompt or "",
+        "session_id": session.id,
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", 8000))
-    debug = os.getenv("DEBUG", "True").lower() == "true"
+    host = os.getenv("HOST")
+    port = int(os.getenv("PORT"))
+    debug = os.getenv("DEBUG") == "true"
 
     uvicorn.run("main:app", host=host, port=port, reload=debug)

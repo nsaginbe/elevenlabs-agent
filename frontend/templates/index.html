@@ -21,6 +21,29 @@
                     <input type="text" id="managerName" placeholder="Введите ваше имя" required>
                 </div>
 
+                <div class="settings-panel" id="settingsPanel">
+                    <h3><i class="fas fa-cog"></i> Настройки тренажера</h3>
+                    
+                    <div class="settings-field">
+                        <label for="companyDescription">Описание компании:</label>
+                        <textarea 
+                            id="companyDescription" 
+                            rows="3" 
+                            placeholder="Опишите сферу деятельности компании"
+                        ></textarea>
+                    </div>
+
+                    <div class="settings-field">
+                        <label for="difficultyLevel">Уровень сложности:</label>
+                        <select id="difficultyLevel">
+                            <option value="Лёгкий">Лёгкий</option>
+                            <option value="Средний" selected>Средний</option>
+                            <option value="Сложный">Сложный</option>
+                            <option value="Экспертный">Экспертный</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="training-controls">
                     <button id="startTraining" class="btn btn-start">
                         <i class="fas fa-play"></i> Начать Тренировку

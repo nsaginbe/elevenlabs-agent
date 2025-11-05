@@ -5,6 +5,8 @@ from typing import Optional
 
 class TrainingSessionCreate(BaseModel):
     manager_name: str
+    company_description: Optional[str] = None
+    difficulty_level: Optional[str] = None
 
 
 class TrainingSessionUpdate(BaseModel):
@@ -30,6 +32,9 @@ class TrainingSessionResponse(BaseModel):
     score: Optional[float]
     feedback: Optional[str]
     status: str
+    company_description: Optional[str] = None
+    difficulty_level: Optional[str] = None
+    final_system_prompt: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -41,3 +46,8 @@ class ConversationAnalysis(BaseModel):
     areas_for_improvement: list[str]
     specific_feedback: str
     key_moments: list[str]
+
+
+class TrainerSettings(BaseModel):
+    company_description: Optional[str] = None
+    difficulty_level: Optional[str] = None

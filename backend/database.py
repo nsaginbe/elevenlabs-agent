@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sales_training.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -26,7 +26,10 @@ class TrainingSession(Base):
     ai_analysis = Column(Text, nullable=True)
     score = Column(Float, nullable=True)
     feedback = Column(Text, nullable=True)
-    status = Column(String, default="active")  # active, completed, analyzed
+    status = Column(String, default="active")
+    company_description = Column(Text, nullable=True)
+    difficulty_level = Column(String, nullable=True)
+    session_system_prompt = Column(Text, nullable=True)
 
 
 def create_tables():

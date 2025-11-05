@@ -49,13 +49,24 @@ class SalesTrainingApp {
             return;
         }
 
+        // Получаем настройки из формы (null-safe)
+        const companyDescriptionEl = document.getElementById('companyDescription');
+        const difficultyLevelEl = document.getElementById('difficultyLevel');
+
+        const companyDescription = companyDescriptionEl ? companyDescriptionEl.value.trim() : '';
+        const difficultyLevel = difficultyLevelEl ? difficultyLevelEl.value : null;
+
         try {
             const response = await fetch('/api/sessions/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ manager_name: managerName })
+                body: JSON.stringify({ 
+                    manager_name: managerName,
+                    company_description: companyDescription || null,
+                    difficulty_level: difficultyLevel || null,
+                })
             });
 
             if (!response.ok) {
@@ -65,6 +76,9 @@ class SalesTrainingApp {
             this.currentSession = await response.json();
             this.showTrainingInterface();
             this.updateSessionInfo();
+            
+            // Получаем финальный промпт и передаем его в ElevenLabs
+            await this.setupElevenLabsPrompt();
 
         } catch (error) {
             console.error('Ошибка запуска тренировки:', error);
@@ -106,6 +120,7 @@ class SalesTrainingApp {
         document.getElementById('startTraining').style.display = 'none';
         document.getElementById('stopTraining').style.display = 'inline-flex';
         document.getElementById('managerName').disabled = true;
+        document.getElementById('settingsPanel').style.display = 'none';
         document.getElementById('sessionInfo').style.display = 'block';
         document.getElementById('convaiContainer').style.display = 'block';
     }
@@ -114,6 +129,7 @@ class SalesTrainingApp {
         document.getElementById('startTraining').style.display = 'inline-flex';
         document.getElementById('stopTraining').style.display = 'none';
         document.getElementById('managerName').disabled = false;
+        document.getElementById('settingsPanel').style.display = 'block';
         document.getElementById('sessionInfo').style.display = 'none';
         document.getElementById('convaiContainer').style.display = 'none';
         
@@ -131,6 +147,48 @@ class SalesTrainingApp {
         const statusElement = document.getElementById('sessionStatus');
         statusElement.textContent = 'Активна';
         statusElement.className = 'status active';
+    }
+
+    async setupElevenLabsPrompt() {
+        if (!this.currentSession) return;
+        
+        try {
+            // Получаем финальный промпт из сессии
+            const response = await fetch(`/api/sessions/${this.currentSession.id}/prompt`);
+            if (!response.ok) {
+                console.warn('Не удалось получить промпт для сессии');
+                return;
+            }
+            
+            const data = await response.json();
+            const systemPrompt = data.system_prompt;
+            
+            if (!systemPrompt) {
+                console.warn('Промпт не найден для сессии');
+                return;
+            }
+            
+            // Передаем промпт в ElevenLabs виджет
+            // Виджет может не поддерживать динамическую установку промпта,
+            // поэтому используем программный API или обновляем через атрибут
+            const convaiWidget = document.querySelector('elevenlabs-convai');
+            if (convaiWidget) {
+                // Пытаемся установить промпт через атрибут (если поддерживается)
+                if (convaiWidget.setAttribute) {
+                    convaiWidget.setAttribute('system-prompt', systemPrompt);
+                }
+                
+                // Альтернативный способ: через событие или API
+                window.dispatchEvent(new CustomEvent('elevenlabs-set-prompt', {
+                    detail: { systemPrompt: systemPrompt }
+                }));
+            }
+            
+            console.log('System prompt установлен для ElevenLabs');
+            
+        } catch (error) {
+            console.error('Ошибка настройки промпта для ElevenLabs:', error);
+        }
     }
 
     setupConvAIListeners() {
